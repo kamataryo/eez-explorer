@@ -90,7 +90,11 @@
 			map.flyTo({ center: latlng, zoom: Math.max(3, map.getZoom()), duration: 200 })
 			const eeznames = features
 				.filter(({layer}) => layer.source === "eez")
-				.map(feature => feature.properties.GEONAME.trim())
+				.map(feature => {
+          const geoname = feature.properties.GEONAME.trim()
+          const territory = `${feature.properties.TERRITORY1.trim()}`
+          return geoname.indexOf(territory) !== -1 ? geoname : `${geoname} (${territory})`
+        })
 			const eezNameSet = new Set(eeznames)
 
       setTimeout(() => {
