@@ -76,7 +76,7 @@
 			}
 
 			const features = map.queryRenderedFeatures(point)
-			map.flyTo({ center: latlng, duration: 200 })
+			map.flyTo({ center: latlng, zoom: 5, duration: 200 })
 			const eeznames = features
 				.filter(({layer}) => layer.source === "eez")
 				.map(feature => feature.properties.GEONAME)
