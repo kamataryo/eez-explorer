@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>EEZ Explorer</title>
+	<style>
+		html, body, #map {
+			width: 100%;
+			height: 100%;
+			padding: 0;
+			margin: 0;
+		}
+		.center {
+			pointer-events: none;
+			position: absolute;
+			z-index: 3;
+			width: 60px;
+			height: 60px;
+			top: calc(50% - 30px);
+			left: calc(50% - 30px);
+			opacity: 0.5;
+		}
+		.center::before, .center::after {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			content: '';
+			display: inline-block;
+			width: 100%;
+			height: 100%;
+			border-top: 2px solid #ffffff;
+			transform: translateX(-50%);
+		}
+		.center::after {
+			top: 0px;
+			left: -50%;
+    			transform: rotate(90deg);
+		}
+		.latlng-input {
+			font-size: 1.5em;
+			padding: 0.5em;
+			width: 300px;
+		}
+
+	</style>
+</head>
+<body>
+	<div
+		id="map"
+		data-marker="off"
+		data-style="geolonia/gsi"
+		data-hash="on"
+		data-3d="off"
+		data-max-zoom="4.9"
+	></div>
+	<div class="center"></div>
+	<script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
+	<script type="module">
+
+		const map = new window.geolonia.Map('#map')
+		const base = window.location.origin + window.location.pathname + 'tiles'
+		const attribution = "<a href=\"https://www.marineregions.org/\">marineregion.org</a>"
+		const beforeLayer = 'poi-z16'
+
+		const query = (args) => {
+			let point
+			let latlng
+			if(args.latlng) {
+				latlng = args.latlng
+				point = map.project(latlng)
+			} else {
+				point = args.point
+				latlng = map.unproject(point)
+			}
+
+			const features = map.queryRenderedFeatures(point)
+			map.flyTo({ center: latlng, duration: 200 })
+			const eeznames = features
+				.filter(({layer}) => layer.source === "eez")
+				.map(feature => feature.properties.GEONAME)
+			const eezNameSet = new Set(eeznames)
+
+			setTimeout(() => {
+				if(eezNameSet.size > 0) {
+				const names = [...eezNameSet].join(', ')
+				alert(names)
+			} else {
+				alert('EEZ 外')
+			}
+			}, 300)
+		}
+
+		class ReverseGeocodeControl {
+			onAdd(map) {
+				const container = document.createElement('div')
+				const input = document.createElement('input')
+				container.appendChild(input)
+
+				container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group opacity-control-container'
+				input.type = 'text'
+				input.placeholder = '緯度経度を入力 e.g. 35.123,135.123'
+				input.className = 'latlng-input'
+
+				input.addEventListener('keydown', (e) => {
+					if(e.key === 'Enter') {
+						try {
+							const vals = input.value.split(',').map(val => parseInt(val, 10)).slice(0, 2)
+							vals.reverse()
+
+							query({ latlng: vals })
+
+
+						} catch (error) {
+							console.log(error)
+							alert('緯度経度の値が不正です')
+						}
+					}
+				})
+				return container
+			}
+			remove() {}
+		}
+		const control = new ReverseGeocodeControl()
+		
+		map
+			.on('load', () => {
+				map.addControl(control, 'top-left')
+
+
+				map.addSource('eez', {
+					type: 'vector',
+					tiles: [`${base}/{z}/{x}/{y}.mvt`],
+					attribution,
+					maxzoom: 14,
+				})
+
+				map.addLayer({
+					id: 'eez-boundary',
+					type: 'fill',
+					source: 'eez',
+					'source-layer': 'eez',
+					paint: {
+						'fill-color': 'blue',
+						'fill-opacity': .3,
+					},
+					maxzoom: 22,
+				}, beforeLayer)
+
+				map.addLayer({
+					id: 'eez-line',
+					type: 'line',
+					source: 'eez',
+					'source-layer': 'eez',
+					paint: {
+						'stroke-color': 'darkblue',
+						'stroke-width': 2,
+					},
+					maxzoom: 22,
+				}, beforeLayer)
+
+			})
+			.on('click', (event) => {
+				query({ point: event.point })
+			})
+	</script>
+</body>
+</html>
