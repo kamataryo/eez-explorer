@@ -4,7 +4,15 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>EEZ Explorer</title>
+  <meta property="og:url" content="https://kamataryo.github.io/eez-explorer" />
+  <meta property="og:type" content=" website" />
+  <meta property="og:title" content="EEZ Explorer | 排他的経済水域マップ" />
+  <meta property="og:description" content="Explore the world EEZ with Web map." />
+  <meta property="og:site_name" content="EEZ Explorer | 排他的経済水域マップ" />
+  <meta property="og:image" content="https://kamataryo.github.io/eez-explorer/ogp.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@kamataryo_" />
+  <title>EEZ Explorer</title>
 	<style>
 		html, body, #map {
 			width: 100%;
@@ -39,9 +47,10 @@
     			transform: rotate(90deg);
 		}
 		.latlng-input {
-			font-size: 1.5em;
+			font-size: 1.3em;
 			padding: 0.5em;
 			width: 300px;
+      border-radius: 3px;
 		}
 
 	</style>
@@ -55,6 +64,7 @@
 		data-3d="off"
 		data-lang="en"
 		data-max-zoom="4.9"
+    data-min-zoom="1"
 	></div>
 	<div class="center"></div>
 	<script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
@@ -77,13 +87,13 @@
 			}
 
 			const features = map.queryRenderedFeatures(point)
-			map.flyTo({ center: latlng, zoom: 5, duration: 200 })
+			map.flyTo({ center: latlng, zoom: Math.max(3, map.getZoom()), duration: 200 })
 			const eeznames = features
 				.filter(({layer}) => layer.source === "eez")
-				.map(feature => feature.properties.GEONAME)
+				.map(feature => feature.properties.GEONAME.trim())
 			const eezNameSet = new Set(eeznames)
 
-			setTimeout(() => {
+      setTimeout(() => {
 				if(eezNameSet.size > 0) {
 				const names = [...eezNameSet].join(', ')
 				alert(names)
@@ -107,11 +117,11 @@
 				input.addEventListener('keydown', (e) => {
 					if(e.key === 'Enter') {
 						try {
-							const vals = input.value.split(',').map(val => parseInt(val, 10)).slice(0, 2)
+							const vals = input.value.split(/[, \/|、;:\t]+/g).filter(x => !!x).map(val => parseFloat(val)).slice(0, 2)
 							vals.reverse()
 
+              console.log(vals)
 							query({ latlng: vals })
-
 
 						} catch (error) {
 							console.log(error)
@@ -124,12 +134,10 @@
 			remove() {}
 		}
 		const control = new ReverseGeocodeControl()
-		
+
 		map
 			.on('load', () => {
 				map.addControl(control, 'top-left')
-
-
 				map.addSource('eez', {
 					type: 'vector',
 					tiles: [`${base}/{z}/{x}/{y}.mvt`],
@@ -143,24 +151,11 @@
 					source: 'eez',
 					'source-layer': 'eez',
 					paint: {
-						'fill-color': 'blue',
+						'fill-color': 'darkblue',
 						'fill-opacity': .3,
 					},
 					maxzoom: 22,
 				}, beforeLayer)
-
-				map.addLayer({
-					id: 'eez-line',
-					type: 'line',
-					source: 'eez',
-					'source-layer': 'eez',
-					paint: {
-						'stroke-color': 'darkblue',
-						'stroke-width': 2,
-					},
-					maxzoom: 22,
-				}, beforeLayer)
-
 			})
 			.on('click', (event) => {
 				query({ point: event.point })
