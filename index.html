@@ -20,86 +20,191 @@
     id="map"
     data-marker="off"
     data-style="geolonia/gsi"
-    data-hash="on"
     data-3d="off"
     data-lang="en"
+    data-zoom="1"
     data-max-zoom="4.9"
     data-min-zoom="1"
   ></div>
-  <div class="center"></div>
   <script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
   <script src="./main.js"></script>
   <script>
-    const main = async () => {
-      const map = await mapLoadPromise
-      const query = (args) => {
-      let point
-      let latlng
-      if(args.latlng) {
-        latlng = args.latlng
-        point = map.project(latlng)
-      } else {
-        point = args.point
-        latlng = map.unproject(point)
+
+    const normalizeLatLng = (latlngStr) => {
+      const latlngFlagments = latlngStr.split(/[, \/|、;:\t]+/g).filter(x => !!x).slice(0, 2)
+
+      let lat
+      let lng
+      let useDirectionPrefix = false
+      for (const flg of latlngFlagments) {
+        const match = flg.toUpperCase().match(/^([NSEW])([0-9]+(\.[0-9]+)?)/)
+        if(match) {
+          useDirectionPrefix = true
+          const prefix = match[1]
+          const number = parseFloat(match[2])
+          if(prefix === 'N') {
+            lat = number
+          } else if (prefix === 'S') {
+            lat = - number
+          } else if (prefix === 'E') {
+            lng = number
+          } else if(prefix === 'W') {
+            lng = - number
+          }
+        }
       }
 
+      if(!useDirectionPrefix) {
+        [lat, lng] = latlngFlagments.map(val => parseFloat(val))
+      }
+
+      if(lat < -90 || lat > 90) { throw new Errror('Invalid lat, lng') }
+      while (lng < -180 || lng > 180) {
+        if(lng < -180) {
+          lng += 360
+        } else {
+          lng -= 360
+        }
+      }
+      return [lat, lng]
+    }
+
+    const formatLatLng = (latlng) => {
+      let { lat, lng } = latlng
+      while (lng < -180 || lng > 180) {
+        if(lng < -180) {
+          lng += 360
+        } else {
+          lng -= 360
+        }
+      }
+      lat = Math.round(1000 * lat) / 1000
+      lng = Math.round(1000 * lng) / 1000
+
+      lat = lat > 0 ? ('N' + lat) : ('S' + (-lat))
+      lng = lng > 0 ? ('E' + lng) : ('W' + (-lng))
+
+      return `${lat} ${lng}`
+    }
+
+    const query = ({ lat, lng }, map) => {
+      const point = map.project([lng, lat])
       const features = map.queryRenderedFeatures(point)
-      map.flyTo({ center: latlng, zoom: Math.max(3, map.getZoom()), duration: 200 })
-      const eeznames = features
+      const sovereigns = features
         .filter(({layer}) => layer.source === "eez")
         .map(feature => {
-          const geoname = feature.properties.GEONAME.trim()
-          const territory = `${feature.properties.TERRITORY1.trim()}`
-          return geoname.indexOf(territory) !== -1 ? geoname : `${geoname} (${territory})`
+          const { SOVEREIGN1, SOVEREIGN2, SOVEREIGN3, TERRITORY1, TERRITORY2, TERRITORY3 } = feature.properties
+          const label1 = SOVEREIGN1 === TERRITORY1 ? `${SOVEREIGN1} EEZ` : `${SOVEREIGN1} EEZ (${TERRITORY1})`
+          const label2 = SOVEREIGN2 === TERRITORY2 ? `${SOVEREIGN2} EEZ` : `${SOVEREIGN2} EEZ (${TERRITORY2})`
+          const label3 = SOVEREIGN3 === TERRITORY3 ? `${SOVEREIGN3} EEZ` : `${SOVEREIGN3} EEZ (${TERRITORY3})`
+          return [label1, label2, label3].filter(label => label && !label.startsWith('undefined'))
         })
-      const eezNameSet = new Set(eeznames)
-
-      setTimeout(() => {
-        if(eezNameSet.size > 0) {
-          const names = [...eezNameSet].join(', ')
-          alert(names)
-        } else {
-          alert('EEZ 外')
-        }
-        }, 300)
-      }
-
-      class ReverseGeocodeControl {
-        constructor(callback) {
-          this.callback = callback
-        }
-        onAdd(map) {
-          const container = document.createElement('div')
-          const input = document.createElement('input')
-          container.appendChild(input)
-
-          container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group opacity-control-container'
-          input.type = 'text'
-          input.placeholder = '緯度経度を入力 e.g. 35.123,135.123'
-          input.className = 'latlng-input'
-
-          input.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-              try {
-                const latlng = input.value.split(/[, \/|、;:\t]+/g).filter(x => !!x).map(val => parseFloat(val)).slice(0, 2)
-                latlng.reverse()
-                query({ latlng })
-
-              } catch (error) {
-                console.log(error)
-                alert('緯度経度の値が不正です')
-              }
+        .reduce((prev, arr) => {
+          for (const item of arr) {
+            if(prev.indexOf(item) === -1) {
+              prev.push(item)
             }
-          })
-          return container
-        }
-        remove() {}
+          }
+          return prev
+        }, [])
+
+      const hasOcOcean = features.find(feature => feature.layer.id === 'oc-ocean')
+      const popupContent = `<dl class="popup">
+            <dt>${formatLatLng({ lat, lng })}</dt>
+            <dd>
+              ${sovereigns.length > 0 ? (`<ul>${sovereigns.map(name => `<li>${name}</li>`).join('')}</ul>`) :( hasOcOcean ? 'Public Sea' : 'Land')}
+            </dd>
+          </dl>`
+      const markerColor = sovereigns.length > 0 ? 'darkblue' : hasOcOcean ? 'dodgerblue' : 'darkorange'
+
+      const popup = new window.geolonia.Popup()
+        .setLngLat([lng, lat])
+        .setHTML(popupContent)
+
+      new window.geolonia.Marker({ color: markerColor })
+        .setLngLat([lng, lat])
+        .setPopup(popup)
+        .addTo(map)
+        .togglePopup()
       }
-      const control = new ReverseGeocodeControl()
-      map.addControl(control, 'top-left')
-      map.on('click', (event) => query({ point: event.point }))
+
+    class ReverseGeocodeControl {
+      onAdd(map) {
+        const container = document.createElement('div')
+        const input = document.createElement('input')
+        container.appendChild(input)
+
+        container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group'
+        input.type = 'text'
+        input.placeholder = '緯度経度を入力 例:35.123,135.123'
+        input.className = 'latlng-input'
+
+        input.addEventListener('keydown', async (e) => {
+          if(e.key === 'Enter') {
+            try {
+              const [lat, lng] = normalizeLatLng(input.value)
+
+              map
+                .flyTo({ center: [lng, lat], zoom: 1, duration: 200 })
+
+              await new Promise(resolve => map.once('moveend', resolve))
+              await sleep(400)
+              query({ lat, lng }, map)
+
+            } catch (error) {
+              console.log(error)
+              alert('緯度経度の値が不正です')
+            }
+          }
+        })
+        return container
+      }
+      remove() {}
     }
-    main()
+    class WizardControl {
+      onAdd(map) {
+        const container = document.createElement('div')
+        const wizard = document.createElement('p')
+        const closeButton = document.createElement('button')
+        container.appendChild(wizard)
+        container.appendChild(closeButton)
+        container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group wizard'
+        wizard.innerHTML = '例えば以下のフォーマットが使用可能です。<ul>' +
+        '<li>N12.345 W135.678</li>' +
+        '<li>S12.345,W135.678</li>' +
+        '<li>E135.678/S12.345</li>' +
+        '</ul>NEWSがない場合は緯度経度の順で入力して下さい。<ul>' +
+        '<li> 12.345 125.678</li>' +
+        '<li> 12.345,125.678</li>' +
+        '<li> 12.345/125.678</li>' +
+        '<li> -12.345 234.322</li>' +
+        '<li> -12.345,-234.322</li>' +
+        '<li> -12.345/-234.322</li>' +
+        '</ul>'
+        closeButton.textContent = 'x'
+        closeButton.className ='close-button'
+        closeButton.addEventListener('click', () => {
+          container.remove()
+          wizard.remove()
+          closeButton.remove()
+        })
+        return container
+      }
+      remove() {}
+    }
+
+    (async () => {
+      const map = await mapLoadPromise
+      const reverseGeocodeControl = new ReverseGeocodeControl()
+      const wizardControl = new WizardControl()
+      map.addControl(reverseGeocodeControl, 'top-left')
+      map.addControl(wizardControl, 'top-left')
+      map.on('dblclick', (event) => {
+        const { lngLat } = event
+        event.preventDefault()
+        query(lngLat, map)
+      })
+    })()
   </script>
 </body>
 </html>

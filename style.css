@@ -31,6 +31,37 @@ html, body, #map, #csv-reverse-geocoder {
   transform: rotate(90deg);
 }
 
+.popup {
+  margin: 0;
+}
+.popup dt {
+  font-weight: bold;
+  font-size: 1em;
+}
+.popup ul, .popup dd {
+  margin: 0;
+  padding: 0;
+}
+.popup ul {
+  padding-left: 10px;
+}
+
+.wizard {
+  padding: 0 1em !important;
+  background-color: rgba(255, 255, 255, .8) !important;
+  box-shadow: none !important;
+}
+.wizard ul {
+  margin: 0;
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-weight: bold;
+  font-size: 1.2em;
+}
 /* index.html */
 
 .latlng-input {
