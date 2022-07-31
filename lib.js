@@ -98,9 +98,11 @@ const query = ({ lat, lng }, map, { id } = {}) => {
     .setLngLat([lng, lat])
     .setHTML(popupContent)
 
-  new window.geolonia.Marker({ color: markerColor })
+  const marker = new window.geolonia.Marker({ color: markerColor })
     .setLngLat([lng, lat])
     .setPopup(popup)
     .addTo(map)
     .togglePopup()
+
+  return marker
 }

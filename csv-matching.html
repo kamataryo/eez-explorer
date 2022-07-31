@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
   <meta property="og:url" content="https://kamataryo.github.io/eez-explorer/csv-matching" />
   <meta property="og:type" content=" website" />
   <meta property="og:title" content="CSV Reverse Geocoding for EEZ | 排他的経済水域マップ" />
@@ -36,27 +36,64 @@
   <script src="./lib.js"></script>
   <script>
 
+    class EditControl {
+      constructor(clickHandler) {
+        this.clickHandler = clickHandler
+      }
+      onAdd(map) {
+        const container = document.createElement('div')
+        const button = document.createElement('button')
+        container.appendChild(button)
+        container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group'
+        button.innerHTML = `
+        <?xml version="1.0" encoding="UTF-8"?>
+          <svg width="16px" height="16px" viewBox="0 0 165 164" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <g id="edge" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+          <g id="hold" transform="translate(82.459229, 82.149780) rotate(-45.000000) translate(-82.459229, -82.149780) translate(-6.040771, 65.149780)">
+            <polygon id="Path" stroke-opacity="0.85" stroke="#000000" stroke-width="10" stroke-linejoin="round" points="176.127136 0 23.0567017 0 0 19.2408447 23.0567017 33.3259888 176.127136 33.3259888"></polygon>
+            <polygon id="Path-2" fill="#000000" points="23.0567017 0 23.0567017 33.3259888 0 16.6629944"></polygon>
+        </g>
+    </g>
+</svg>`
+        button.addEventListener('click', this.clickHandler)
+        return container
+      }
+      onRemove() {}
+    }
+
     (async () => {
       const map = await mapLoadPromise
+
       const wholeForm = document.getElementById('csv-reverse-geocoder')
       const convertButton = document.getElementById('convert-button')
       const csvTextArea = document.getElementById('csv-input')
-      csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい
-# 次のような値が使用できます
-pointA${'\t'}N12.345${'\t'}W135.678
-pointB${'\t'}S12.345${'\t'}W135.678
-pointC${'\t'}E135.678${'\t'}S12.345
-# 数字のみ場合は緯度経度の順で入力して下さい
-pointD${'\t'}12.345${'\t'}125.678
-pointE${'\t'}12.345${'\t'}125.678
-pointF${'\t'}12.345${'\t'}125.678
-pointG${'\t'}-12.345${'\t'}234.322
-pointH${'\t'}-12.345${'\t'}-234.322
-pointI${'\t'}-12.345${'\t'}-234.322`
+      csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい&#13;&#10;
+# 次のような値が使用できます&#13;&#10;
+pointA${'\t'}N12.345${'\t'}W135.678&#13;&#10;
+pointB${'\t'}S12.345${'\t'}W135.678&#13;&#10;
+pointC${'\t'}E135.678${'\t'}S12.345&#13;&#10;
+# 数字のみ場合は緯度経度の順で入力して下さい&#13;&#10;
+pointD${'\t'}12.345${'\t'}125.678&#13;&#10;
+pointE${'\t'}12.345${'\t'}125.678&#13;&#10;
+pointF${'\t'}12.345${'\t'}125.678&#13;&#10;
+pointG${'\t'}-12.345${'\t'}234.322&#13;&#10;
+pointH${'\t'}-12.345${'\t'}-234.322&#13;&#10;
+pointI${'\t'}-12.345${'\t'}-234.322&#13;&#10;`
+
+      const markers = []
+      const editControl = new EditControl(() => {
+        while (markers.length > 0) {
+          const marker = markers.pop()
+          marker.remove()
+        }
+        wholeForm.style.display = 'flex'
+      })
+      map.addControl(editControl, 'top-left')
 
       convertButton.addEventListener('click', async () => {
         const csvLines = csvTextArea.value.replace(/\r\n/g, '\n').split('\n').filter(x => !!x && !x.trim().startsWith('#'))
-        wholeForm.remove()
+        wholeForm.style.display = 'none'
+
         for (const line of csvLines) {
           const [ lat, lng, id ] =normalizeLatLng(line, true)
           if(!map.getBounds().contains([lng, lat])) {
@@ -64,7 +101,8 @@ pointI${'\t'}-12.345${'\t'}-234.322`
             await new Promise(resolve => map.once('moveend', resolve))
             await sleep(400)
           }
-          query({ lat, lng }, map, { id })
+          const marker = query({ lat, lng }, map, { id })
+          markers.push(marker)
         }
       })
     })()
