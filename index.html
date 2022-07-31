@@ -199,12 +199,29 @@
       const wizardControl = new WizardControl()
       map.addControl(reverseGeocodeControl, 'top-left')
       map.addControl(wizardControl, 'top-left')
-      map.on('dblclick', (event) => {
+
+      const queryHandler = (event) => {
         const { lngLat } = event
         event.preventDefault()
         query(lngLat, map)
+      }
+
+      map.on('dblclick', queryHandler)
+      let tapCount = 0
+      map.on('touchstart', (event) => {
+        if(tapCount === 0) {
+          tapCount++
+          setTimeout(() => {
+          tapCount = 0
+        }, 300)
+      } else {
+        queryHandler(event)
+        tapCount = 0
+      }
+
       })
     })()
+
   </script>
 </body>
 </html>

@@ -69,6 +69,7 @@ html, body, #map, #csv-reverse-geocoder {
   padding: 0.5em;
   width: 300px;
   border-radius: 3px;
+  margin: 0;
 }
 
 /* reverse-geocoder */
