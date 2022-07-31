@@ -1,5 +1,12 @@
-const normalizeLatLng = (latlngStr) => {
-  const latlngFlagments = latlngStr.split(/[, \/|、;:\t]+/g).filter(x => !!x).slice(0, 2)
+const normalizeLatLng = (latlngStr, firstItemIsId = false) => {
+  let latlngFlagments = latlngStr.split(/[, \/|、;:\t]+/g).filter(x => !!x)
+  let id
+  if(firstItemIsId) {
+    latlngFlagments = latlngFlagments.slice(0, 3)
+    id = latlngFlagments.shift()
+  } else {
+    latlngFlagments = latlngFlagments.slice(0, 2)
+  }
 
   let lat
   let lng
@@ -34,7 +41,7 @@ const normalizeLatLng = (latlngStr) => {
       lng -= 360
     }
   }
-  return [lat, lng]
+  return [lat, lng, id]
 }
 
 const formatLatLng = (latlng) => {
@@ -55,7 +62,7 @@ const formatLatLng = (latlng) => {
   return `${lat} ${lng}`
 }
 
-const query = ({ lat, lng }, map) => {
+const query = ({ lat, lng }, map, { id } = {}) => {
   const point = map.project([lng, lat])
   const features = map.queryRenderedFeatures(point)
   const sovereigns = features
@@ -78,7 +85,7 @@ const query = ({ lat, lng }, map) => {
 
   const hasOcOcean = features.find(feature => feature.layer.id === 'oc-ocean')
   const popupContent = `<dl class="popup">
-        <dt>${formatLatLng({ lat, lng })}</dt>
+        <dt>` + (id ? `<span class="id-display">[${id}]</span>` : '') + `${formatLatLng({ lat, lng })}</dt>
         <dd>
           ${sovereigns.length > 0 ? (`<ul>${sovereigns.map(name => `<li>${name}</li>`).join('')}</ul>`) :( hasOcOcean ? 'Public Sea' : 'Land')}
         </dd>

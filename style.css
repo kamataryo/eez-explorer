@@ -100,3 +100,6 @@ html, body, #map, #csv-reverse-geocoder {
 #convert-button {
   font-size: 1.2em;
 }
+.id-display {
+  margin-right: .5em;
+}
