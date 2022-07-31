@@ -1,7 +1,13 @@
 const mapLoadPromise = new Promise((resolve) => {
 
   const map = new window.geolonia.Map('#map')
-  const base = window.location.origin + window.location.pathname + 'tiles'
+
+  const paths = window.location.pathname.split('/')
+  if(paths[paths.length - 1].startsWith('csv-matching')) {
+    paths.pop()
+  }
+  paths.push('tiles')
+  const base = window.location.origin + paths.join('/')
   const attribution = "<a href=\"https://www.marineregions.org/\">marineregion.org</a> | <a href=\"https://github.com/kamataryo/eez-explorer\">The sorce code</a>"
   const beforeLayer = 'poi-z16'
 

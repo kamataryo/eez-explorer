@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:url" content="https://kamataryo.github.io/eez-explorer" />
+  <meta property="og:type" content=" website" />
+  <meta property="og:title" content="EEZ Explorer | 排他的経済水域マップ" />
+  <meta property="og:description" content="Explore the world EEZ with Web map." />
+  <meta property="og:site_name" content="EEZ Explorer | 排他的経済水域マップ" />
+  <meta property="og:image" content="https://kamataryo.github.io/eez-explorer/ogp.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@kamataryo_" />
+  <title>EEZ Explorer</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div
+    id="map"
+    data-marker="off"
+    data-style="geolonia/gsi"
+    data-3d="off"
+    data-lang="en"
+    data-zoom="1"
+    data-max-zoom="4.9"
+    data-min-zoom="1"
+  ></div>
+  <form id="csv-reverse-geocoder">
+    <textarea id="csv-input" placeholder=""></textarea>
+    <button type="button" id="convert-button">地図上にプロットする</button>
+  </form>
+  <script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
+  <script src="./main.js"></script>
+  <script src="./lib.js"></script>
+  <script>
+
+    (async () => {
+      const map = await mapLoadPromise
+      const wholeForm = document.getElementById('csv-reverse-geocoder')
+      const convertButton = document.getElementById('convert-button')
+      const csvTextArea = document.getElementById('csv-input')
+      csvTextArea.placeholder = `# エクセルから緯度、経度の列をコピーして下さい
+# 次のような値が使用できます
+N12.345${'\t'}W135.678
+S12.345${'\t'}W135.678
+E135.678${'\t'}S12.345
+# 数字のみ場合は緯度経度の順で入力して下さい
+12.345${'\t'}125.678
+12.345${'\t'}125.678
+12.345${'\t'}125.678
+-12.345${'\t'}234.322
+-12.345${'\t'}-234.322
+-12.345${'\t'}-234.322
+# Advanced: データはカンマ区切り、またはタブ区切りで入力できます`
+
+      convertButton.addEventListener('click', async () => {
+        const csvLines = csvTextArea.value.replace(/\r\n/g, '\n').split('\n').filter(x => !!x && !x.trim().startsWith('#'))
+        wholeForm.remove()
+        for (const line of csvLines) {
+          const [ lat, lng ] =normalizeLatLng(line)
+          if(!map.getBounds().contains([lng, lat])) {
+            map.flyTo({ center: [lng, lat], zoom: 1, duration: 200 })
+            await new Promise(resolve => map.once('moveend', resolve))
+            await sleep(400)
+          }
+          query({ lat, lng }, map)
+        }
+      })
+    })()
+
+  </script>
+</body>
+</html>
