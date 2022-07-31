@@ -50,6 +50,8 @@ html, body, #map, #csv-reverse-geocoder {
   padding: 0 1em !important;
   background-color: rgba(255, 255, 255, .8) !important;
   box-shadow: none !important;
+  width: calc(342px - 8em) !important;
+  margin: 1em;
 }
 .wizard ul {
   margin: 0;
@@ -67,7 +69,7 @@ html, body, #map, #csv-reverse-geocoder {
 .latlng-input {
   font-size: 1.3em;
   padding: 0.5em;
-  width: 300px;
+  width: 100%;
   border-radius: 3px;
   margin: 0;
 }

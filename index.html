@@ -136,7 +136,7 @@
 
         container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group'
         input.type = 'text'
-        input.placeholder = '緯度経度を入力 例:35.123,135.123'
+        input.placeholder = '緯度経度を入力'
         input.className = 'latlng-input'
 
         input.addEventListener('keydown', async (e) => {
@@ -173,15 +173,15 @@
         '<li>N12.345 W135.678</li>' +
         '<li>S12.345,W135.678</li>' +
         '<li>E135.678/S12.345</li>' +
-        '</ul>NEWSがない場合は緯度経度の順で入力して下さい。<ul>' +
+        '</ul>数字のみ場合は緯度経度の順で入力して下さい。<ul>' +
         '<li> 12.345 125.678</li>' +
         '<li> 12.345,125.678</li>' +
         '<li> 12.345/125.678</li>' +
         '<li> -12.345 234.322</li>' +
         '<li> -12.345,-234.322</li>' +
         '<li> -12.345/-234.322</li>' +
-        '</ul>'
-        closeButton.textContent = 'x'
+        '</ul>ダブルタップで地図上の場所を選択できます。'
+        closeButton.textContent = '×'
         closeButton.className ='close-button'
         closeButton.addEventListener('click', () => {
           container.remove()
