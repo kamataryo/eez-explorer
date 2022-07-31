@@ -1,169 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property="og:url" content="https://kamataryo.github.io/eez-explorer" />
   <meta property="og:type" content=" website" />
   <meta property="og:title" content="EEZ Explorer | 排他的経済水域マップ" />
   <meta property="og:description" content="Explore the world EEZ with Web map." />
   <meta property="og:site_name" content="EEZ Explorer | 排他的経済水域マップ" />
   <meta property="og:image" content="https://kamataryo.github.io/eez-explorer/ogp.png" />
-	<meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@kamataryo_" />
   <title>EEZ Explorer</title>
-	<style>
-		html, body, #map {
-			width: 100%;
-			height: 100%;
-			padding: 0;
-			margin: 0;
-		}
-		.center {
-			pointer-events: none;
-			position: absolute;
-			z-index: 3;
-			width: 60px;
-			height: 60px;
-			top: calc(50% - 30px);
-			left: calc(50% - 30px);
-			opacity: 0.5;
-		}
-		.center::before, .center::after {
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			content: '';
-			display: inline-block;
-			width: 100%;
-			height: 100%;
-			border-top: 2px solid #ffffff;
-			transform: translateX(-50%);
-		}
-		.center::after {
-			top: 0px;
-			left: -50%;
-    			transform: rotate(90deg);
-		}
-		.latlng-input {
-			font-size: 1.3em;
-			padding: 0.5em;
-			width: 300px;
-      border-radius: 3px;
-		}
-
-	</style>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-	<div
-		id="map"
-		data-marker="off"
-		data-style="geolonia/gsi"
-		data-hash="on"
-		data-3d="off"
-		data-lang="en"
-		data-max-zoom="4.9"
+  <div
+    id="map"
+    data-marker="off"
+    data-style="geolonia/gsi"
+    data-hash="on"
+    data-3d="off"
+    data-lang="en"
+    data-max-zoom="4.9"
     data-min-zoom="1"
-	></div>
-	<div class="center"></div>
-	<script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
-	<script type="module">
+  ></div>
+  <div class="center"></div>
+  <script src="https://cdn.geolonia.com/dev/embed?geolonia-api-key=YOUR-API-KEY"></script>
+  <script src="./main.js"></script>
+  <script>
+    const main = async () => {
+      const map = await mapLoadPromise
+      const query = (args) => {
+      let point
+      let latlng
+      if(args.latlng) {
+        latlng = args.latlng
+        point = map.project(latlng)
+      } else {
+        point = args.point
+        latlng = map.unproject(point)
+      }
 
-		const map = new window.geolonia.Map('#map')
-		const base = window.location.origin + window.location.pathname + 'tiles'
-		const attribution = "<a href=\"https://www.marineregions.org/\">marineregion.org</a> | <a href=\"https://github.com/kamataryo/eez-explorer\">source code</a>"
-		const beforeLayer = 'poi-z16'
-
-		const query = (args) => {
-			let point
-			let latlng
-			if(args.latlng) {
-				latlng = args.latlng
-				point = map.project(latlng)
-			} else {
-				point = args.point
-				latlng = map.unproject(point)
-			}
-
-			const features = map.queryRenderedFeatures(point)
-			map.flyTo({ center: latlng, zoom: Math.max(3, map.getZoom()), duration: 200 })
-			const eeznames = features
-				.filter(({layer}) => layer.source === "eez")
-				.map(feature => {
+      const features = map.queryRenderedFeatures(point)
+      map.flyTo({ center: latlng, zoom: Math.max(3, map.getZoom()), duration: 200 })
+      const eeznames = features
+        .filter(({layer}) => layer.source === "eez")
+        .map(feature => {
           const geoname = feature.properties.GEONAME.trim()
           const territory = `${feature.properties.TERRITORY1.trim()}`
           return geoname.indexOf(territory) !== -1 ? geoname : `${geoname} (${territory})`
         })
-			const eezNameSet = new Set(eeznames)
+      const eezNameSet = new Set(eeznames)
 
       setTimeout(() => {
-				if(eezNameSet.size > 0) {
-				const names = [...eezNameSet].join(', ')
-				alert(names)
-			} else {
-				alert('EEZ 外')
-			}
-			}, 300)
-		}
+        if(eezNameSet.size > 0) {
+          const names = [...eezNameSet].join(', ')
+          alert(names)
+        } else {
+          alert('EEZ 外')
+        }
+        }, 300)
+      }
 
-		class ReverseGeocodeControl {
-			onAdd(map) {
-				const container = document.createElement('div')
-				const input = document.createElement('input')
-				container.appendChild(input)
+      class ReverseGeocodeControl {
+        constructor(callback) {
+          this.callback = callback
+        }
+        onAdd(map) {
+          const container = document.createElement('div')
+          const input = document.createElement('input')
+          container.appendChild(input)
 
-				container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group opacity-control-container'
-				input.type = 'text'
-				input.placeholder = '緯度経度を入力 e.g. 35.123,135.123'
-				input.className = 'latlng-input'
+          container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group maplibregl-ctrl maplibregl-ctrl-group opacity-control-container'
+          input.type = 'text'
+          input.placeholder = '緯度経度を入力 e.g. 35.123,135.123'
+          input.className = 'latlng-input'
 
-				input.addEventListener('keydown', (e) => {
-					if(e.key === 'Enter') {
-						try {
-							const vals = input.value.split(/[, \/|、;:\t]+/g).filter(x => !!x).map(val => parseFloat(val)).slice(0, 2)
-							vals.reverse()
+          input.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+              try {
+                const latlng = input.value.split(/[, \/|、;:\t]+/g).filter(x => !!x).map(val => parseFloat(val)).slice(0, 2)
+                latlng.reverse()
+                query({ latlng })
 
-              console.log(vals)
-							query({ latlng: vals })
-
-						} catch (error) {
-							console.log(error)
-							alert('緯度経度の値が不正です')
-						}
-					}
-				})
-				return container
-			}
-			remove() {}
-		}
-		const control = new ReverseGeocodeControl()
-
-		map
-			.on('load', () => {
-				map.addControl(control, 'top-left')
-				map.addSource('eez', {
-					type: 'vector',
-					tiles: [`${base}/{z}/{x}/{y}.mvt`],
-					attribution,
-					maxzoom: 14,
-				})
-
-				map.addLayer({
-					id: 'eez-boundary',
-					type: 'fill',
-					source: 'eez',
-					'source-layer': 'eez',
-					paint: {
-						'fill-color': 'darkblue',
-						'fill-opacity': .3,
-					},
-					maxzoom: 22,
-				}, beforeLayer)
-			})
-			.on('click', (event) => {
-				query({ point: event.point })
-			})
-	</script>
+              } catch (error) {
+                console.log(error)
+                alert('緯度経度の値が不正です')
+              }
+            }
+          })
+          return container
+        }
+        remove() {}
+      }
+      const control = new ReverseGeocodeControl()
+      map.addControl(control, 'top-left')
+      map.on('click', (event) => query({ point: event.point }))
+    }
+    main()
+  </script>
 </body>
 </html>
