@@ -42,17 +42,16 @@
       const csvTextArea = document.getElementById('csv-input')
       csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい
 # 次のような値が使用できます
-A,N12.345${'\t'}W135.678
-B,S12.345${'\t'}W135.678
-C,E135.678${'\t'}S12.345
+pointA${'\t'}N12.345${'\t'}W135.678
+pointB${'\t'}S12.345${'\t'}W135.678
+pointC${'\t'}E135.678${'\t'}S12.345
 # 数字のみ場合は緯度経度の順で入力して下さい
-D,12.345${'\t'}125.678
-E,12.345${'\t'}125.678
-F,12.345${'\t'}125.678
-G,-12.345${'\t'}234.322
-H,-12.345${'\t'}-234.322
-I,-12.345${'\t'}-234.322
-# Advanced: データはカンマ区切り、またはタブ区切りで入力できます`
+pointD${'\t'}12.345${'\t'}125.678
+pointE${'\t'}12.345${'\t'}125.678
+pointF${'\t'}12.345${'\t'}125.678
+pointG${'\t'}-12.345${'\t'}234.322
+pointH${'\t'}-12.345${'\t'}-234.322
+pointI${'\t'}-12.345${'\t'}-234.322`
 
       convertButton.addEventListener('click', async () => {
         const csvLines = csvTextArea.value.replace(/\r\n/g, '\n').split('\n').filter(x => !!x && !x.trim().startsWith('#'))
