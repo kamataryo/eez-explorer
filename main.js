@@ -16,7 +16,6 @@ const mapLoadPromise = new Promise((resolve) => {
 
     const style = map.getStyle()
     for (const layer of style.layers.filter(layer => layer.source === 'dem')) {
-      console.log(layer)
       map.removeLayer(layer.id)
     }
     map.removeSource('dem')

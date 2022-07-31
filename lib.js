@@ -85,7 +85,7 @@ const query = ({ lat, lng }, map, { id } = {}) => {
       return prev
     }, [])
 
-  const hasOcOcean = features.find(feature => feature.layer.id === 'oc-ocean')
+    const hasOcOcean = features.find(feature => feature.layer.id.startsWith('oc-ocean'))
   const popupContent = `<dl class="popup">
         <dt>` + (id ? `<span class="id-display">[${id}]</span>` : '') + `${formatLatLng({ lat, lng })}</dt>
         <dd>
