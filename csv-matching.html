@@ -67,18 +67,18 @@
       const wholeForm = document.getElementById('csv-reverse-geocoder')
       const convertButton = document.getElementById('convert-button')
       const csvTextArea = document.getElementById('csv-input')
-      csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい&#13;&#10;
-# 次のような値が使用できます&#13;&#10;
-pointA${'\t'}N12.345${'\t'}W135.678&#13;&#10;
-pointB${'\t'}S12.345${'\t'}W135.678&#13;&#10;
-pointC${'\t'}E135.678${'\t'}S12.345&#13;&#10;
-# 数字のみ場合は緯度経度の順で入力して下さい&#13;&#10;
-pointD${'\t'}12.345${'\t'}125.678&#13;&#10;
-pointE${'\t'}12.345${'\t'}125.678&#13;&#10;
-pointF${'\t'}12.345${'\t'}125.678&#13;&#10;
-pointG${'\t'}-12.345${'\t'}234.322&#13;&#10;
-pointH${'\t'}-12.345${'\t'}-234.322&#13;&#10;
-pointI${'\t'}-12.345${'\t'}-234.322&#13;&#10;`
+      csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい
+# 次のような値が使用できます
+pointA${'\t'}N12.345${'\t'}W135.678
+pointB${'\t'}S12.345${'\t'}W135.678
+pointC${'\t'}E135.678${'\t'}S12.345
+# 数字のみ場合は緯度経度の順で入力して下さい
+pointD${'\t'}12.345${'\t'}125.678
+pointE${'\t'}12.345${'\t'}125.678
+pointF${'\t'}12.345${'\t'}125.678
+pointG${'\t'}-12.345${'\t'}234.322
+pointH${'\t'}-12.345${'\t'}-234.322
+pointI${'\t'}-12.345${'\t'}-234.322`
 
       const markers = []
       const editControl = new EditControl(() => {

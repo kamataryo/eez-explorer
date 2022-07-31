@@ -94,8 +94,8 @@ html, body, #map, #csv-reverse-geocoder {
 
 #csv-input {
   margin: 20px;
-  height: calc(100% - 300px);
-  width: calc(100% - 200px);
+  height: 500px;
+  width: calc(100% - 100px);
 }
 #convert-button {
   font-size: 1.2em;
