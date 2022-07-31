@@ -1,5 +1,5 @@
 const normalizeLatLng = (latlngStr, firstItemIsId = false) => {
-  let latlngFlagments = latlngStr.split(/[, \/|、;:\t]+/g).filter(x => !!x)
+  let latlngFlagments = latlngStr.split(/[, \/|、;:\t　]+/g).filter(x => !!x)
   let id
   if(firstItemIsId) {
     latlngFlagments = latlngFlagments.slice(0, 3)
@@ -12,7 +12,9 @@ const normalizeLatLng = (latlngStr, firstItemIsId = false) => {
   let lng
   let useDirectionPrefix = false
   for (const flg of latlngFlagments) {
-    const match = flg.toUpperCase().match(/^([NSEW])([0-9]+(\.[0-9]+)?)/)
+    const match = flg.toUpperCase()
+      .replace(/[Ａ-Ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+      .match(/^([NSEW])([0-9]+(\.[0-9]+)?)/)
     if(match) {
       useDirectionPrefix = true
       const prefix = match[1]
