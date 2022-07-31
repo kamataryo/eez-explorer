@@ -3,8 +3,7 @@
 https://kamataryo.github.io/eez-explorer
 
 ## data
-
-https://www.marineregions.org/
+EEZ boundary originated in https://www.marineregions.org/.
 
 ## develop
 

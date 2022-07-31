@@ -8,11 +8,20 @@ const mapLoadPromise = new Promise((resolve) => {
   }
   paths.push('tiles')
   const base = window.location.origin + paths.join('/')
-  const attribution = "<a href=\"https://www.marineregions.org/\">marineregion.org</a> | <a href=\"https://github.com/kamataryo/eez-explorer\">The sorce code</a>"
+  const attribution = "<a href=\"https://www.marineregions.org/\">marineregion.org</a> | <a href=\"https://github.com/kamataryo/eez-explorer\">©︎kamataryo</a>"
   const beforeLayer = 'poi-z16'
 
   map
   .on('load', () => {
+
+    const style = map.getStyle()
+    for (const layer of style.layers.filter(layer => layer.source === 'dem')) {
+      console.log(layer)
+      map.removeLayer(layer.id)
+    }
+    map.removeSource('dem')
+
+
     map.addSource('eez', {
       type: 'vector',
       tiles: [`${base}/{z}/{x}/{y}.mvt`],
