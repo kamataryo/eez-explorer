@@ -8,7 +8,7 @@ const mapLoadPromise = new Promise((resolve) => {
   }
   paths.push('tiles')
   const base = window.location.origin + paths.join('/')
-  const attribution = "<a href=\"https://www.marineregions.org/\">marineregions.org</a> | <a href=\"https://github.com/kamataryo/eez-explorer\">©︎kamataryo</a>"
+  const attribution = "<a href=\"https://github.com/kamataryo/eez-explorer/\">About me</a> | <a href=\"https://www.marineregions.org/\">marineregions.org</a>"
   const beforeLayer = 'poi-z16'
 
   map

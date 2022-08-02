@@ -74,7 +74,9 @@ const query = ({ lat, lng }, map, { id } = {}) => {
       const label1 = SOVEREIGN1 === TERRITORY1 ? `${SOVEREIGN1} EEZ` : `${SOVEREIGN1} EEZ (${TERRITORY1})`
       const label2 = SOVEREIGN2 === TERRITORY2 ? `${SOVEREIGN2} EEZ` : `${SOVEREIGN2} EEZ (${TERRITORY2})`
       const label3 = SOVEREIGN3 === TERRITORY3 ? `${SOVEREIGN3} EEZ` : `${SOVEREIGN3} EEZ (${TERRITORY3})`
-      return [label1, label2, label3].filter(label => label && !label.startsWith('undefined'))
+      return [label1, label2, label3]
+        .filter(label => label && !label.startsWith('undefined'))
+        .map(label => label.startsWith('Antarctica') ? label.replace(' EEZ', ' 200 miles zone') : label)
     })
     .reduce((prev, arr) => {
       for (const item of arr) {
@@ -85,7 +87,7 @@ const query = ({ lat, lng }, map, { id } = {}) => {
       return prev
     }, [])
 
-    const hasOcOcean = features.find(feature => feature.layer.id.startsWith('oc-ocean'))
+  const hasOcOcean = features.find(feature => feature.layer.id.startsWith('oc-ocean'))
   const popupContent = `<dl class="popup">
         <dt>` + (id ? `<span class="id-display">[${id}]</span>` : '') + `${formatLatLng({ lat, lng })}</dt>
         <dd>
