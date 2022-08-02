@@ -3,7 +3,7 @@
 https://kamataryo.github.io/eez-explorer
 
 EEZ explorer は EEZ (排他的経済水域) を探索するインタラクティブなウェブ地図です。
-EEZ 領域は [marineregions.org](https://www.marineregions.org/) のデータを利用しています。
+EEZ 領域は [marineregions.org](https://www.marineregions.org/) のデータ (Marine boundaries v11、 CC-BY license) を利用しています。
 [Issues](https://github.com/kamataryo/eez-explorer/issues) と [プルリクエスト](https://github.com/kamataryo/eez-explorer/pulls) はお気軽にお寄せ下さい。日本語でも問題ありません。
 
 ## develop
