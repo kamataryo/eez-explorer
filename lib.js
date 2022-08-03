@@ -88,23 +88,23 @@ const query = ({ lat, lng }, map, { id } = {}) => {
     }, [])
 
   const hasOcOcean = features.find(feature => feature.layer.id.startsWith('oc-ocean'))
-  const popupContent = `<dl class="popup">
-        <dt>` + (id ? `<span class="id-display">[${id}]</span>` : '') + `${formatLatLng({ lat, lng })}</dt>
-        <dd>
-          ${sovereigns.length > 0 ? (`<ul>${sovereigns.map(name => `<li>${name}</li>`).join('')}</ul>`) :( hasOcOcean ? 'Public Sea' : 'Land')}
-        </dd>
-      </dl>`
-  const markerColor = sovereigns.length > 0 ? 'darkblue' : hasOcOcean ? 'dodgerblue' : 'darkorange'
+  const description = sovereigns.length > 0 ? sovereigns.join(' / ') : ( hasOcOcean ? 'Public Sea' : '')
 
-  const popup = new window.geolonia.Popup()
-    .setLngLat([lng, lat])
-    .setHTML(popupContent)
+  const feature = {
+    type: 'Feature',
+    properties: {
+      id,
+      latlng: formatLatLng({ lat, lng }),
+      description,
+    },
+    geometry: {
+      type: 'Point',
+      coordinates: [lng, lat],
+    }
+  }
 
-  const marker = new window.geolonia.Marker({ color: markerColor })
-    .setLngLat([lng, lat])
-    .setPopup(popup)
-    .addTo(map)
-    .togglePopup()
-
-  return marker
+  window.eez_explorer_points_feature_collection.features.push(feature)
+  map
+    .getSource('__eez-explore-point-source')
+    .setData(window.eez_explorer_points_feature_collection)
 }

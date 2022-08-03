@@ -66,6 +66,7 @@
       const wholeForm = document.getElementById('csv-reverse-geocoder')
       const convertButton = document.getElementById('convert-button')
       const csvTextArea = document.getElementById('csv-input')
+      csvTextArea.value = localStorage.getItem('__eez_explore') || ''
       csvTextArea.placeholder = `# エクセルからID、緯度、経度の列をコピーして下さい
 # 次のような値が使用できます
 pointA${'\t'}N12.345${'\t'}W135.678
@@ -79,17 +80,14 @@ pointG${'\t'}-12.345${'\t'}234.322
 pointH${'\t'}-12.345${'\t'}-234.322
 pointI${'\t'}-12.345${'\t'}-234.322`
 
-      const markers = []
       const editControl = new EditControl(() => {
-        while (markers.length > 0) {
-          const marker = markers.pop()
-          marker.remove()
-        }
+        window.eez_explorer_points_feature_collection.features = []
         wholeForm.style.display = 'flex'
       })
       map.addControl(editControl, 'top-left')
 
       convertButton.addEventListener('click', async () => {
+        localStorage.setItem('__eez_explore', csvTextArea.value)
         const csvLines = csvTextArea.value.replace(/\r\n/g, '\n').split('\n').filter(x => !!x && !x.trim().startsWith('#'))
         wholeForm.style.display = 'none'
 
@@ -100,8 +98,7 @@ pointI${'\t'}-12.345${'\t'}-234.322`
             await new Promise(resolve => map.once('moveend', resolve))
             await sleep(400)
           }
-          const marker = query({ lat, lng }, map, { id })
-          markers.push(marker)
+          query({ lat, lng }, map, { id })
         }
       })
     })()

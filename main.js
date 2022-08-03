@@ -11,8 +11,54 @@ const mapLoadPromise = new Promise((resolve) => {
   const attribution = "<a href=\"https://github.com/kamataryo/eez-explorer/\">About me</a> | <a href=\"https://www.marineregions.org/\">marineregions.org</a>"
   const beforeLayer = 'poi-z16'
 
+  window.eez_explorer_points_feature_collection = {
+    type: 'FeatureCollection',
+    features: [],
+  }
+
   map
   .on('load', () => {
+
+    map.addSource('__eez-explore-point-source', {
+      type: 'geojson',
+      data: window.eez_explorer_points_feature_collection,
+      cluster: true,
+      clusterRadius: 80,
+    })
+
+    map.addLayer({
+      id: '__eez-expolre-point-id-layer',
+      type: 'symbol',
+      source: '__eez-explore-point-source',
+      layout: {
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 12,
+        "text-field": [
+          'format',
+          ['coalesce', ['get', 'id'], ['get', 'latlng']],
+          {
+            'font-scale': 1.2,
+            "text-color": "crimson",
+          },
+          '\n',
+          {},
+          ['get', 'description'],
+          {
+            'font-scale': .8,
+            "text-color": "darkslategray",
+          },
+        ],
+        "text-letter-spacing": 0.1,
+        'text-variable-anchor': ['top', 'bottom'],
+        'text-offset': [0, .75],
+        "icon-image": 'marker',
+        'icon-size': 1.5,
+      },
+      paint: {
+        "text-halo-width": 1.8,
+        "text-halo-color": "rgba(255,250,220,0.7)",
+      }
+    })
 
     const style = map.getStyle()
     for (const layer of style.layers.filter(layer => layer.source === 'dem')) {
